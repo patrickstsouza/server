@@ -1,0 +1,26 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "Coursework web server",
+  "main": "httpServer.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/patrickstsouza/server.git"
+  },
+  "keywords": [
+    "coursework"
+  ],
+  "author": "Patrick Santos de Souza",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/patrickstsouza/server/issues"
+  },
+  "homepage": "https://github.com/patrickstsouza/server#readme",
+  "dependencies": {
+    "express": "^4.16.3",
+    "pg": "^7.4.2"
+  }
+}

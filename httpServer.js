@@ -6,7 +6,7 @@ var app = express();
 // adding functionality to allow cross-domain queries when PhoneGap is running a server
 app.use(function (req, res, next) {
 	res.setHeader("Access-Control-Allow-Origin", "*");
-	res.setHeader("Access-Control-Allow-Headers", "X-Requested-With");
+	res.setHeader("Access-Control-Allow-Headers", "*");
 	res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 	next();
 });
@@ -51,31 +51,44 @@ console.log(`database connection object: ${JSON.stringify(config, null, 2)}`)
 var pg = require('pg');
 var pool = new pg.Pool(config);
 
-// app.get('/postgistest', function (req, res) {
-// 	pool.connect(function (err, client, done) {
-// 		if (err) {
-// 			console.log("not able to get connection " + err);
-// 			res.status(400).send(err);
-// 			return;
-// 		}
-// 		console.log('connected to database');
-// 		client.query('SELECT name FROM united_kingdom_counties'
-// 			, function (err, result) {
-// 				done();
-// 				if (err) {
-// 					console.log(err);
-// 					res.status(400).send(err);
-// 				}
-// 				res.status(200).send(result.rows);
-// 			});
-// 	});
-// });
 
-// var bodyParser = require('body-parser');
-// app.use(bodyParser.urlencoded({
-// 	extended: true
-// }));
-// app.use(bodyParser.json());
+// Needed to access the body of the client's requests as javascript objects. Will only work if client sends 'Content-Type: application/json' 
+// Source: https://stackoverflow.com/questions/11625519/how-to-access-the-request-body-when-posting-using-node-js-and-express
+var bodyParser = require('body-parser');
+app.use(bodyParser.urlencoded({
+	extended: true
+}));
+app.use(bodyParser.json());
+
+app.post('/addQuestion', function(req, res) {
+	console.log('>>> called addQuestion', req.body);
+
+	pool.connect(function (err, client, done) {
+		if (err) {
+			console.log("not able to get connection " + err);
+			res.status(400).send(err);
+			return;
+		}
+
+		var values = req.body;
+		var querystring = `
+		insert into public.webmobile_questions (question, answer1, answer2, answer3, answer4, correct_answer, geom)
+		values ('${values.question}', '${values.answer1}', '${values.answer2}', '${values.answer3}', '${values.answer4}', '${values.correctAnswer}', st_geomfromtext('POINT(${values.lat} ${values.long})', 4326))
+		`;
+		console.log("connected to database, executing query:", querystring);
+
+		client.query(querystring, function (err, result) {
+			done();
+			if (err) {
+				console.log(err);
+				res.status(400).send(err);
+				return;
+			}
+			console.log("executed query successfully. result:", result);
+			res.status(200).send("added question");
+		});		
+	});
+});
 
 // app.post('/uploadData', function (req, res) {
 // 	// note that we are using POST here as we are uploading data

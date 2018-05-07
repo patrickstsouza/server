@@ -34,7 +34,7 @@ var fs = require('fs')
 var configtext;
 try {
 	configtext = "" + fs.readFileSync("/home/studentuser/certs/postGISConnection.js");
-} catch(e) {
+} catch (e) {
 	// On windows lets get the db connection data from a file in the same dir
 	configtext = "" + fs.readFileSync('./postGISConnection.js');
 }
@@ -61,7 +61,7 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json());
 
 // Endpoint for adding a question from the web configuration tool
-app.post('/addQuestion', function(req, res) {
+app.post('/addQuestion', function (req, res) {
 	console.log('>>> called addQuestion', req.body);
 
 	pool.connect(function (err, client, done) {
@@ -87,12 +87,12 @@ app.post('/addQuestion', function(req, res) {
 			}
 			console.log("executed query successfully. result:", result);
 			res.status(200).send("added question");
-		});		
+		});
 	});
 });
 
 // Client app asks for a question for a specific location
-app.post('/getQuestionForLocation', function(req, res) {
+app.post('/getQuestionForLocation', function (req, res) {
 	console.log('>>> called getQuestionForLocation', req.body);
 
 	pool.connect(function (err, client, done) {
@@ -133,12 +133,12 @@ app.post('/getQuestionForLocation', function(req, res) {
 			}
 			console.log("executed query successfully. result:", result);
 			res.status(200).send(JSON.stringify(ret));
-		});		
+		});
 	});
 });
 
 // Client app saves the answer for a question
-app.post('/saveAnswer', function(req, res) {
+app.post('/saveAnswer', function (req, res) {
 	console.log('>>> called saveAnswer', req.body);
 
 	pool.connect(function (err, client, done) {
@@ -164,6 +164,21 @@ app.post('/saveAnswer', function(req, res) {
 			}
 			console.log("executed query successfully. result:", result);
 			res.status(200).send("saved answer");
-		});		
+		});
 	});
+});
+
+var path = require('path');
+
+// When browsers requests the root, we return the questions' app index.html
+app.get('/', function (req, res) {
+	var filePath = path.join(__dirname, '..', 'questions', 'index.html');
+	res.sendFile(filePath);
+});
+
+// Any other file that is requested via get comes from the questions app
+app.get('/:filename', function (req, res) {
+	// the res is the response that the server sends back to the browser - you will see this text in your browser window
+	var filePath = path.join(__dirname, '..', 'questions', req.params.filename);
+	res.sendFile(filePath);
 });

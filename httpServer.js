@@ -90,6 +90,46 @@ app.post('/addQuestion', function(req, res) {
 	});
 });
 
+app.post('/getQuestionForLocation', function(req, res) {
+	console.log('>>> called getQuestionForLocation', req.body);
+
+	pool.connect(function (err, client, done) {
+		if (err) {
+			console.log("not able to get connection " + err);
+			res.status(400).send(err);
+			return;
+		}
+
+		var values = req.body;
+
+		// Creates a query that searches for all questions that are within 10 meters of the user location
+		// Source: https://gis.stackexchange.com/questions/77688/postgis-get-the-points-that-are-x-meters-near-another-point-in-meters
+		var querystring = `
+		select * from public.webmobile_questions
+		where ST_DWithin(geom::geography, st_geomfromtext('POINT(${values.lat} ${values.long})', 4326)::geography, 10);
+		`;
+		console.log("connected to database, executing query:", querystring);
+
+		client.query(querystring, function (err, result) {
+			done();
+			if (err) {
+				console.log(err);
+				res.status(400).send(err);
+				return;
+			}
+
+			var ret;
+			if (result.rowCount === 0) {
+				ret = {};
+			} else {
+				ret = result.rows[0];
+			}
+			console.log("executed query successfully. result:", result);
+			res.status(200).send(JSON.stringify(ret));
+		});		
+	});
+});
+
 // app.post('/uploadData', function (req, res) {
 // 	// note that we are using POST here as we are uploading data
 // 	// so the parameters form part of the BODY of the request rather than the RESTful API

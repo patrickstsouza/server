@@ -5,7 +5,7 @@ The server is the bridge between the quiz app, the question configuration webpag
 
 # Installation
 
-1. Clone this repository and got into the cloned folder:
+1. Clone this repository and cd into the cloned folder:
 ```
 git clone https://github.com/patrickstsouza/server
 cd server

@@ -47,9 +47,9 @@ for (var i = 0; i < configarray.length; i++) {
 	config[split[0].trim()] = split[1].trim();
 }
 
+// imports 'pg' and configures a pool with the database information that we got from postGISConnection.js
 var pg = require('pg');
 var pool = new pg.Pool(config);
-
 
 // Needed to access the body of the client's requests as javascript objects. Will only work if client sends 'Content-Type: application/json' 
 // Source: https://stackoverflow.com/questions/11625519/how-to-access-the-request-body-when-posting-using-node-js-and-express
@@ -63,27 +63,38 @@ app.use(bodyParser.json());
 app.post('/addQuestion', function (req, res) {
 	console.log('>>> called addQuestion', req.body);
 
+	// Connects to database, will trigger function passed as parameter when done
 	pool.connect(function (err, client, done) {
+		// If error connecting then abort and send error to client
 		if (err) {
 			console.log("not able to get connection " + err);
 			res.status(400).send(err);
 			return;
 		}
 
+		// Stores the data the client sent
 		var values = req.body;
+
+		// Creating the query string for adding a question to the database
 		var querystring = `
 		insert into public.webmobile_questions (question, answer1, answer2, answer3, answer4, correct_answer, geom)
 		values ('${values.question}', '${values.answer1}', '${values.answer2}', '${values.answer3}', '${values.answer4}', '${values.correctAnswer}', st_geomfromtext('POINT(${values.lat} ${values.long})', 4326))
 		`;
 		console.log("connected to database, executing query:", querystring);
 
+		// Executes the query, will trigger function passed as parameter when done
 		client.query(querystring, function (err, result) {
+			// Tells 'pg' that we are done with this connection
 			done();
+
+			// If error abort and send error to client
 			if (err) {
 				console.log(err);
 				res.status(400).send(err);
 				return;
 			}
+
+			// Everything went ok, sends 200 to user
 			console.log("executed query successfully");
 			res.status(200).send("added question");
 		});
@@ -94,6 +105,7 @@ app.post('/addQuestion', function (req, res) {
 app.post('/getQuestionForLocation', function (req, res) {
 	console.log('>>> called getQuestionForLocation', req.body);
 
+	// Connects to database, will trigger function passed as parameter when done
 	pool.connect(function (err, client, done) {
 		if (err) {
 			console.log("not able to get connection " + err);
@@ -101,6 +113,7 @@ app.post('/getQuestionForLocation', function (req, res) {
 			return;
 		}
 
+		// Stores the data the client sent
 		var values = req.body;
 
 		// Creates a query that searches for all questions that are within 10 meters of the user location
@@ -116,14 +129,19 @@ app.post('/getQuestionForLocation', function (req, res) {
 		`;
 		console.log("connected to database, executing query:", querystring);
 
+		// Executes the query, will trigger function passed as parameter when done
 		client.query(querystring, function (err, result) {
+			// Tells 'pg' that we are done with this connection
 			done();
+
+			// If error abort and send error to client
 			if (err) {
 				console.log(err);
 				res.status(400).send(err);
 				return;
 			}
 
+			// If database returns no rows we send back empty object. Otherwise, we send the first question returned.
 			var ret;
 			if (result.rowCount === 0) {
 				ret = {};
@@ -132,6 +150,7 @@ app.post('/getQuestionForLocation', function (req, res) {
 			}
 			console.log("executed query successfully");
 
+			// Everything went ok, sends 200 to user
 			res.status(200).send(JSON.stringify(ret));
 		});
 	});
@@ -141,22 +160,31 @@ app.post('/getQuestionForLocation', function (req, res) {
 app.post('/saveAnswer', function (req, res) {
 	console.log('>>> called saveAnswer', req.body);
 
+	// Connects to database, will trigger function passed as parameter when done
 	pool.connect(function (err, client, done) {
+		// If error abort and send error to client
 		if (err) {
 			console.log("not able to get connection " + err);
 			res.status(400).send(err);
 			return;
 		}
 
+		// Stores the data the client sent
 		var values = req.body;
+
+		// Creates a querystring for adding an answer to the database
 		var querystring = `
 		insert into public.webmobile_answers (questionId, phoneId, answer)
 		values (${values.questionId}, '${values.phoneId}', '${values.answer}')
 		`;
 		console.log("connected to database, executing query:", querystring);
 
+		// Executes the query, will trigger function passed as parameter when done
 		client.query(querystring, function (err, result) {
+			// Tells 'pg' that we are done with this connection
 			done();
+
+			// If error abort and send error to client
 			if (err) {
 				console.log(err);
 				res.status(400).send(err);
@@ -164,6 +192,7 @@ app.post('/saveAnswer', function (req, res) {
 			}
 			console.log("executed query successfully");
 
+			// Everything went ok, sends 200 to user
 			res.status(200).send("saved answer");
 		});
 	});

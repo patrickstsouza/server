@@ -3,6 +3,11 @@
 This repository hosts the service of the Location Quiz App done as coursework of Web and Mobile GIS - Apps and Programming course in UCL.
 The server is the bridge between the quiz app, the question configuration webpage and the database.
 
+# Related repositories:
+
+* Questions: https://github.com/patrickstsouza/questions
+* Quiz: https://github.com/patrickstsouza/quiz
+
 # Installation
 
 1. Clone this repository and cd into the cloned folder:

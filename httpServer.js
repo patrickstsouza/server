@@ -46,7 +46,6 @@ for (var i = 0; i < configarray.length; i++) {
 	var split = configarray[i].split(':');
 	config[split[0].trim()] = split[1].trim();
 }
-console.log(`database connection object: ${JSON.stringify(config, null, 2)}`)
 
 var pg = require('pg');
 var pool = new pg.Pool(config);
@@ -85,7 +84,7 @@ app.post('/addQuestion', function (req, res) {
 				res.status(400).send(err);
 				return;
 			}
-			console.log("executed query successfully. result:", result);
+			console.log("executed query successfully");
 			res.status(200).send("added question");
 		});
 	});
@@ -131,7 +130,8 @@ app.post('/getQuestionForLocation', function (req, res) {
 			} else {
 				ret = result.rows[0];
 			}
-			console.log("executed query successfully. result:", result);
+			console.log("executed query successfully");
+
 			res.status(200).send(JSON.stringify(ret));
 		});
 	});
@@ -162,7 +162,8 @@ app.post('/saveAnswer', function (req, res) {
 				res.status(400).send(err);
 				return;
 			}
-			console.log("executed query successfully. result:", result);
+			console.log("executed query successfully");
+
 			res.status(200).send("saved answer");
 		});
 	});

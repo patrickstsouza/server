@@ -60,6 +60,7 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(bodyParser.json());
 
+// Endpoint for adding a question from the web configuration tool
 app.post('/addQuestion', function(req, res) {
 	console.log('>>> called addQuestion', req.body);
 
@@ -90,6 +91,7 @@ app.post('/addQuestion', function(req, res) {
 	});
 });
 
+// Client app asks for a question for a specific location
 app.post('/getQuestionForLocation', function(req, res) {
 	console.log('>>> called getQuestionForLocation', req.body);
 
@@ -106,7 +108,12 @@ app.post('/getQuestionForLocation', function(req, res) {
 		// Source: https://gis.stackexchange.com/questions/77688/postgis-get-the-points-that-are-x-meters-near-another-point-in-meters
 		var querystring = `
 		select * from public.webmobile_questions
-		where ST_DWithin(geom::geography, st_geomfromtext('POINT(${values.lat} ${values.long})', 4326)::geography, 10);
+		where ST_DWithin(geom::geography, st_geomfromtext('POINT(${values.lat} ${values.long})', 4326)::geography, 10)
+		and id not in
+		(
+			select questionId as id from public.webmobile_answers
+			where phoneId = '${values.phoneId}'
+		);
 		`;
 		console.log("connected to database, executing query:", querystring);
 
@@ -130,34 +137,33 @@ app.post('/getQuestionForLocation', function(req, res) {
 	});
 });
 
-// app.post('/uploadData', function (req, res) {
-// 	// note that we are using POST here as we are uploading data
-// 	// so the parameters form part of the BODY of the request rather than the RESTful API
-// 	console.dir(req.body);
-// 	pool.connect(function (err, client, done) {
-// 		if (err) {
-// 			console.log("not able to get connection " + err);
-// 			res.status(400).send(err);
-// 			return;
-// 		}
+// Client app saves the answer for a question
+app.post('/saveAnswer', function(req, res) {
+	console.log('>>> called saveAnswer', req.body);
 
+	pool.connect(function (err, client, done) {
+		if (err) {
+			console.log("not able to get connection " + err);
+			res.status(400).send(err);
+			return;
+		}
 
-// 		// pull the geometry component together
-// 		// note that well known text requires the points as longitude/latitude !
-// 		// well known text should look like: 'POINT(-71.064544 42.28787)'
-// 		var geometrystring = "st_geomfromtext('POINT(" + req.body.longitude + " " + req.body.latitude + ")'";
-// 		var querystring = "INSERT into formdata (name,surname,module,language, modulelist, lecturetime, geom) values('";
-// 		querystring = querystring + req.body.name + "','" + req.body.surname + "','" + req.body.module + "','";
-// 		querystring = querystring + req.body.language + "','" + req.body.modulelist + "','" + req.body.lecturetime + "'," + geometrystring + "))";
+		var values = req.body;
+		var querystring = `
+		insert into public.webmobile_answers (questionId, phoneId, answer)
+		values (${values.questionId}, '${values.phoneId}', '${values.answer}')
+		`;
+		console.log("connected to database, executing query:", querystring);
 
-// 		console.log(querystring);
-// 		client.query(querystring, function (err, result) {
-// 			done();
-// 			if (err) {
-// 				console.log(err);
-// 				res.status(400).send(err);
-// 			}
-// 			res.status(200).send("row inserted");
-// 		});
-// 	});
-// });
+		client.query(querystring, function (err, result) {
+			done();
+			if (err) {
+				console.log(err);
+				res.status(400).send(err);
+				return;
+			}
+			console.log("executed query successfully. result:", result);
+			res.status(200).send("saved answer");
+		});		
+	});
+});

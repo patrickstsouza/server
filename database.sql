@@ -10,3 +10,10 @@ create table public.webmobile_questions (
     correct_answer varchar,
     geom geometry(Point, 4326)
 );
+
+create table public.webmobile_answers (
+    questionId integer,
+    phoneId varchar,
+    answer varchar,
+    UNIQUE (questionId, phoneId)
+);

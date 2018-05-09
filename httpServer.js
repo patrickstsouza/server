@@ -4,6 +4,7 @@ var path = require("path");
 var app = express();
 
 // adding functionality to allow cross-domain queries when PhoneGap is running a server
+// Source: couse exercises - practical week 6
 app.use(function (req, res, next) {
 	res.setHeader("Access-Control-Allow-Origin", "*");
 	res.setHeader("Access-Control-Allow-Headers", "*");
@@ -13,6 +14,7 @@ app.use(function (req, res, next) {
 
 
 // adding functionality to log the requests
+// Source: couse exercises - practical week 6
 app.use(function (req, res, next) {
 	var filename = path.basename(req.url);
 	var extension = path.extname(filename);
@@ -24,6 +26,7 @@ app.use(function (req, res, next) {
 // add an http server to serve files to the Edge browser 
 // due to certificate issues it rejects the https files if they are not
 // directly called in a typed URL
+// Source: couse exercises - practical week 6
 var http = require('http');
 var httpServer = http.createServer(app);
 httpServer.listen(4480);
@@ -40,6 +43,7 @@ try {
 }
 
 // now convert the configruation file into the correct format -i.e. a name/value pair array
+// Source: couse exercises - practical week 6
 var configarray = configtext.split(",");
 var config = {};
 for (var i = 0; i < configarray.length; i++) {
@@ -53,6 +57,7 @@ var pool = new pg.Pool(config);
 
 // Needed to access the body of the client's requests as javascript objects. Will only work if client sends 'Content-Type: application/json' 
 // Source: https://stackoverflow.com/questions/11625519/how-to-access-the-request-body-when-posting-using-node-js-and-express
+// Source: couse exercises - practical week 6
 var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({
 	extended: true
@@ -64,6 +69,7 @@ app.post('/addQuestion', function (req, res) {
 	console.log('>>> called addQuestion', req.body);
 
 	// Connects to database, will trigger function passed as parameter when done
+	// Source: couse exercises - practical week 6
 	pool.connect(function (err, client, done) {
 		// If error connecting then abort and send error to client
 		if (err) {
@@ -83,6 +89,7 @@ app.post('/addQuestion', function (req, res) {
 		console.log("connected to database, executing query:", querystring);
 
 		// Executes the query, will trigger function passed as parameter when done
+		// Source: couse exercises - practical week 6
 		client.query(querystring, function (err, result) {
 			// Tells 'pg' that we are done with this connection
 			done();
@@ -106,6 +113,7 @@ app.post('/getQuestionForLocation', function (req, res) {
 	console.log('>>> called getQuestionForLocation', req.body);
 
 	// Connects to database, will trigger function passed as parameter when done
+	// Source: couse exercises - practical week 6
 	pool.connect(function (err, client, done) {
 		if (err) {
 			console.log("not able to get connection " + err);
@@ -130,6 +138,7 @@ app.post('/getQuestionForLocation', function (req, res) {
 		console.log("connected to database, executing query:", querystring);
 
 		// Executes the query, will trigger function passed as parameter when done
+		// Source: couse exercises - practical week 6
 		client.query(querystring, function (err, result) {
 			// Tells 'pg' that we are done with this connection
 			done();
@@ -161,6 +170,7 @@ app.post('/saveAnswer', function (req, res) {
 	console.log('>>> called saveAnswer', req.body);
 
 	// Connects to database, will trigger function passed as parameter when done
+	// Source: couse exercises - practical week 6
 	pool.connect(function (err, client, done) {
 		// If error abort and send error to client
 		if (err) {
@@ -180,6 +190,7 @@ app.post('/saveAnswer', function (req, res) {
 		console.log("connected to database, executing query:", querystring);
 
 		// Executes the query, will trigger function passed as parameter when done
+		// Source: couse exercises - practical week 6
 		client.query(querystring, function (err, result) {
 			// Tells 'pg' that we are done with this connection
 			done();
@@ -201,12 +212,14 @@ app.post('/saveAnswer', function (req, res) {
 var path = require('path');
 
 // When browsers requests the root, we return the questions' app index.html
+// Source: couse exercises - practical week 6
 app.get('/', function (req, res) {
 	var filePath = path.join(__dirname, '..', 'questions', 'index.html');
 	res.sendFile(filePath);
 });
 
 // Any other file that is requested via get comes from the questions app
+// Source: couse exercises - practical week 6
 app.get('/:filename', function (req, res) {
 	// the res is the response that the server sends back to the browser - you will see this text in your browser window
 	var filePath = path.join(__dirname, '..', 'questions', req.params.filename);
